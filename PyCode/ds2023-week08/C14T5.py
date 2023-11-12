@@ -1,39 +1,56 @@
-# import numpy as np
+import wave
 
-# # 生成随机音频信号
-# audio_signal = np.random.random(1024)
+import pylab as pl 
 
-# # 对音频信号进行FFT
-# fft_result = np.fft.fft(audio_signal)
+import numpy as np 
 
-# # 输出FFT结果
-# print(audio_signal)
-# print(fft_result)
+from scipy import fft
 
 
-import pyaudio
-import numpy as np
+# 打开WAV文档 
 
-# 初始化PyAudio
-p = pyaudio.PyAudio()
+f = wave.open(r"D:\Code\PyCode\ds2023-week08\Audio.wav", "rb") 
 
-# 打开音频文件
-stream = p.open(format=pyaudio.paFloat32,
-                channels=1,
-                rate=44100,
-                input=True,
-                frames_per_buffer=1024)
+# 读取格式信息 
 
-# 读取音频数据
-data = stream.read(1024)
+# (nchannels, sampwidth, framerate, nframes, comptype, compname) 
 
-# 将音频数据转换为NumPy数组
-numpy_array = np.frombuffer(data, dtype=np.float32)
+params = f.getparams() 
 
-# 关闭音频流
-stream.stop_stream()
-stream.close()
-p.terminate()
+nchannels, sampwidth, framerate, nframes = params[:4] 
 
-# 输出NumPy数组
-print(numpy_array)
+# 读取波形数据 
+
+str_data = f.readframes(nframes) 
+
+f.close() 
+
+#将波形数据转换为数组 
+
+wave_data = np.fromstring(str_data, dtype=np.short) 
+
+if nchannels == 2:
+
+    wave_data.shape = -1, 2 
+
+    wave_data = wave_data.T 
+
+    time = np.arange(0, nframes) * (1.0 / framerate) 
+
+    # 绘制波形 
+    
+    pl.subplot(211) 
+
+    pl.plot(time, wave_data[0]) 
+
+    fft_result = np.fft.fft(wave_data[0])
+
+    pl.subplot(212) 
+
+    pl.plot(time, fft_result, c="g") 
+
+    pl.xlabel("time (seconds)") 
+
+    pl.show()
+
+
